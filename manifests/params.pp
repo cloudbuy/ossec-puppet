@@ -69,13 +69,13 @@ class ossec::params {
     }
     'windows': {
       $config_file = 'C:\\Program Files (x86)\\ossec-agent\\ossec.conf'
-      $config_owner = 'Administrator'
-      $config_group = 'Administrators'
+      $config_owner = 'BUILTIN\Administrators'
+      $config_group = 'NT AUTHORITY\SYSTEM'
 
       $keys_file = 'C:\\Program Files (x86)\\ossec-agent\\client.keys'
       $keys_mode = '0440'
-      $keys_owner = 'Administrator'
-      $keys_group = 'Administrators'
+      $keys_owner = 'BUILTIN\Administrators'
+      $keys_group = 'NT AUTHORITY\SYSTEM'
 
       $agent_service  = 'OssecSvc'
 
