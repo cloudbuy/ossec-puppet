@@ -13,7 +13,7 @@ define ossec::agentkey(
   $agentKey2 = md5("${agent_name} ${agent_ip_address} ${agent_seed}")
 
   concat::fragment { "var_ossec_etc_client.keys_${agent_name}_part":
-    target  => $ossec::params::keys_file,
+    target  => 'ossec_keys_file',
     order   => $agent_id,
     content => "${agent_id} ${agent_name} ${agent_ip_address} ${agentKey1}${agentKey2}\n",
   }
