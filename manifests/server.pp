@@ -58,28 +58,30 @@ class ossec::server (
   }
 
   # configure ossec
-  concat { $ossec::params::config_file:
+  concat { 'ossec_config_file':
+    path    => $ossec::params::config_file,
     owner   => $ossec::params::config_owner,
     group   => $ossec::params::config_group,
     mode    => $ossec::params::config_mode,
     require => Package[$ossec::params::server_package],
     notify  => Service[$ossec::params::server_service]
   }
-  concat::fragment { 'ossec.conf_10' :
-    target  => $ossec::params::config_file,
+  concat::fragment { 'ossec.conf_10':
+    target  => 'ossec_config_file',
     content => template('ossec/10_ossec.conf.erb'),
     order   => 10,
     notify  => Service[$ossec::params::server_service]
   }
   concat::fragment { 'ossec.conf_90' :
-    target  => $ossec::params::config_file,
+    target  => 'ossec_config_file',
     content => template('ossec/90_ossec.conf.erb'),
     order   => 90,
     notify  => Service[$ossec::params::server_service]
   }
 
   if ( $manage_client_keys == true ) {
-    concat { $ossec::params::keys_file:
+    concat { 'ossec_keys_file':
+      path    => $ossec::params::keys_file,
       owner   => $ossec::params::keys_owner,
       group   => $ossec::params::keys_group,
       mode    => $ossec::params::keys_mode,
@@ -87,7 +89,7 @@ class ossec::server (
       require => Package[$ossec::params::server_package],
     }
     concat::fragment { 'var_ossec_etc_client.keys_end' :
-      target  => $ossec::params::keys_file,
+      target  => 'ossec_keys_file',
       order   => 99,
       content => "\n",
       notify  => Service[$ossec::params::server_service]
