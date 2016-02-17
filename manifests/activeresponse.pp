@@ -9,7 +9,7 @@ define ossec::activeresponse(
   require ossec::params
 
   concat::fragment { $name:
-    target  => $ossec::params::config_file,
+    target  => 'ossec_config_file',
     order   => 55,
     content => template('ossec/activeresponse.erb')
   }

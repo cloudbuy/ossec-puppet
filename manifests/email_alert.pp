@@ -6,7 +6,7 @@ define ossec::email_alert(
   require ossec::params
 
   concat::fragment { $name:
-    target  => $ossec::params::config_file,
+    target  => 'ossec_config_file',
     order   => 65,
     content => template('ossec/email_alert.erb'),
   }
