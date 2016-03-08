@@ -15,6 +15,7 @@ class ossec::server (
   $ossec_emailnotification             = 'yes',
   $ossec_check_frequency               = 79200,
   $use_mysql                           = false,
+  $manage_package                      = true,
   $manage_repos                        = true,
   $manage_epel_repo                    = true,
   $manage_client_keys                  = true,
@@ -44,17 +45,19 @@ class ossec::server (
     Class['mysql::client'] ~> Service[$ossec::params::server_service]
   }
 
-  # install package
-  package { $ossec::params::server_package:
-    ensure  => installed
-  }
-
   service { $ossec::params::server_service:
     ensure    => running,
     enable    => true,
     hasstatus => $ossec::params::service_has_status,
-    pattern   => $ossec::params::server_service,
-    require   => Package[$ossec::params::server_package],
+    pattern   => $ossec::params::server_service
+  }
+
+  # install package
+  if $manage_package {
+    Service[$ossec::params::server_service]->
+    package { $ossec::params::server_package:
+      ensure  => installed
+    }
   }
 
   # configure ossec
