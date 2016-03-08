@@ -36,8 +36,6 @@ class ossec::server (
   if $manage_repos {
     # TODO: Allow filtering of EPEL requirement
     class { 'ossec::repo': redhat_manage_epel => $manage_epel_repo }
-    Class['ossec::repo'] -> Package[$ossec::params::server_package]
-  }
 
   if $use_mysql {
     # Relies on mysql module specified in metadata.json
@@ -54,10 +52,11 @@ class ossec::server (
 
   # install package
   if $manage_package {
-    Service[$ossec::params::server_service]->
+    Class['ossec::repo'] ->
     package { $ossec::params::server_package:
       ensure  => installed
-    }
+    } ->
+    Service[$ossec::params::server_service]
   }
 
   # configure ossec
