@@ -57,6 +57,7 @@ class ossec::server (
     package { $ossec::params::server_package:
       ensure => installed
     }->
+    Concat['ossec_config_file']->
     Service[$ossec::params::server_service]
   }
 
@@ -66,7 +67,6 @@ class ossec::server (
     owner   => $ossec::params::config_owner,
     group   => $ossec::params::config_group,
     mode    => $ossec::params::config_mode,
-    require => Package[$ossec::params::server_package],
     notify  => Service[$ossec::params::server_service]
   }
   concat::fragment { 'ossec.conf_10':
@@ -89,13 +89,16 @@ class ossec::server (
       group   => $ossec::params::keys_group,
       mode    => $ossec::params::keys_mode,
       notify  => Service[$ossec::params::server_service],
-      require => Package[$ossec::params::server_package],
     }
     concat::fragment { 'var_ossec_etc_client.keys_end' :
       target  => 'ossec_keys_file',
       order   => 99,
       content => "\n",
       notify  => Service[$ossec::params::server_service]
+    }
+
+    if ($manage_package == true) {
+      Package[$ossec::params::server_package] -> Concat['ossec_keys_file']
     }
   }
 
@@ -104,8 +107,11 @@ class ossec::server (
     owner   => $ossec::params::config_owner,
     group   => $ossec::params::config_group,
     mode    => $ossec::params::config_mode,
-    notify  => Service[$ossec::params::server_service],
-    require => Package[$ossec::params::server_package]
+    notify  => Service[$ossec::params::server_service]
+  }
+
+  if ($manage_package == true) {
+    Package[$ossec::params::server_package] -> File['/var/ossec/etc/shared/agent.conf']
   }
 
   Ossec::Agentkey<<| |>>
