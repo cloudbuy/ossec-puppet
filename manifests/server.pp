@@ -15,6 +15,7 @@ class ossec::server (
   $ossec_emailnotification             = 'yes',
   $ossec_check_frequency               = 79200,
   $use_mysql                           = false,
+  $use_wazuh_decoders                  = false,
   $manage_package                      = true,
   $manage_repos                        = true,
   $manage_epel_repo                    = true,
