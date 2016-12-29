@@ -1,10 +1,38 @@
+# Repo installation
 class ossec::repo (
   $redhat_manage_epel = true,
 ) {
+  file { '/usr/src/ossec':
+    ensure => directory,
+  }
+
+  file { '/usr/src/ossec/RPM-GPG-KEY-OSSEC':
+    ensure  => present,
+    source  => 'puppet:///modules/ossec/RPM-GPG-KEY-OSSEC',
+    owner   => root,
+    group   => root,
+    mode    => '0744',
+    require => File['/usr/src/ossec']
+  }
+
+  file { '/usr/src/ossec/RPM-GPG-KEY-OSSEC-RHEL5':
+    ensure  => present,
+    source  => 'puppet:///modules/ossec/RPM-GPG-KEY-OSSEC-RHEL5',
+    owner   => root,
+    group   => root,
+    mode    => '0744',
+    require => File['/usr/src/ossec']
+  }
+
   case $::osfamily {
     'Debian' : {
+      # apt-key added by issue #34
+      apt::key { 'puppetlabs':
+        id     => '9FE55537D1713CA519DFB85114B9C8DB9A1B1C65',
+        source => 'http://ossec.wazuh.com/repos/apt/conf/ossec-key.gpg.key'
+      }
       case $::lsbdistcodename {
-        /(precise|trusty|vivid|wily)/: {
+        /(precise|trusty|vivid|wily|xenial|yakketi)/: {
 
           apt::source { 'wazuh':
             ensure      => present,
@@ -14,8 +42,6 @@ class ossec::repo (
             repos       => 'main',
             include_src => false,
             include_deb => true,
-            key         => '9FE55537D1713CA519DFB85114B9C8DB9A1B1C65',
-            key_source  => 'http://ossec.wazuh.com/repos/apt/conf/ossec-key.gpg.key',
           }
           ~>
           exec { 'update-apt-wazuh-repo':
@@ -23,7 +49,7 @@ class ossec::repo (
             refreshonly => true
           }
 
-    }
+        }
         /^(jessie|wheezy|stretch|sid)$/: {
           apt::source { 'wazuh':
             ensure      => present,
@@ -33,8 +59,6 @@ class ossec::repo (
             repos       => 'main',
             include_src => false,
             include_deb => true,
-            key         => '9FE55537D1713CA519DFB85114B9C8DB9A1B1C65',
-            key_source  => 'http://ossec.wazuh.com/repos/apt/conf/ossec-key.gpg.key',
           }
           ~>
           exec { 'update-apt-wazuh-repo':
@@ -45,29 +69,29 @@ class ossec::repo (
         default: { fail('This ossec module has not been tested on your distribution (or lsb package not installed)') }
       }
     }
-    'Redhat' : {
-      if $operatingsystemrelease =~ /^5.*/ {
-        # Set up OSSEC repo
-        yumrepo { 'ossec':
-          descr    => 'WAZUH OSSEC Repository - www.wazuh.com',
-          enabled  => true,
-          gpgcheck => 1,
-          gpgkey   => 'http://ossec.wazuh.com/key/RPM-GPG-KEY-OSSEC-RHEL5',
-          baseurl  => 'http://ossec.wazuh.com/el/$releasever/$basearch',
-          priority => 1,
-          protect  => false,
-        }
+    'Linux', 'Redhat' : {
+      if ( $::operatingsystem == 'Amazon' ) {
+        $repotype = 'Amazon Linux'
+        $baseurl  = 'http://ossec.wazuh.com/el/6Server/$basearch'
+        $gpgkey   = 'file:///usr/src/ossec/RPM-GPG-KEY-OSSEC'
+      } elsif ( $::operatingsystemrelease =~ /^5.*/ ) {
+        $repotype = 'RHEL5'
+        $baseurl  = 'http://ossec.wazuh.com/el/$releasever/$basearch'
+        $gpgkey   = 'file:///usr/src/ossec/RPM-GPG-KEY-OSSEC-RHEL5'
+      } else {
+        $repotype = 'RHEL > 5'
+        $baseurl  = 'http://ossec.wazuh.com/el/$releasever/$basearch'
+        $gpgkey   = 'file:///usr/src/ossec/RPM-GPG-KEY-OSSEC'
       }
-      else {
-        # Set up OSSEC repo
-        yumrepo { 'ossec':
-          descr    => 'WAZUH OSSEC Repository - www.wazuh.com',
-          enabled  => true,
-          gpgkey   => 'http://ossec.wazuh.com/key/RPM-GPG-KEY-OSSEC',
-          baseurl  => 'http://ossec.wazuh.com/el/$releasever/$basearch',
-          priority => 1,
-          protect  => false,
-        }
+
+      # Set up OSSEC repo
+      yumrepo { 'ossec':
+        descr    => "WAZUH OSSEC Repository - www.wazuh.com # ${repotype}",
+        enabled  => true,
+        gpgcheck => 1,
+        gpgkey   => $gpgkey,
+        baseurl  => $baseurl,
+        require  => [ File['/usr/src/ossec/RPM-GPG-KEY-OSSEC'], File['/usr/src/ossec/RPM-GPG-KEY-OSSEC-RHEL5'] ]
       }
 
       if $redhat_manage_epel {

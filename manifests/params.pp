@@ -1,3 +1,4 @@
+# Paramas file
 class ossec::params {
   case $::kernel {
     'Linux': {
@@ -12,6 +13,11 @@ class ossec::params {
       $keys_owner = 'root'
       $keys_group = 'ossec'
 
+      $processlist_file = '/var/ossec/bin/.process_list'
+      $processlist_mode = '0440'
+      $processlist_owner = 'root'
+      $processlist_group = 'ossec'
+
       case $::osfamily {
         'Debian': {
 
@@ -20,6 +26,8 @@ class ossec::params {
           $agent_package  = 'ossec-hids-agent'
 
           $service_has_status  = false
+
+          $ossec_service_provider = undef
 
           $default_local_files = {
             '/var/log/syslog'             => 'syslog',
@@ -43,7 +51,7 @@ class ossec::params {
           }
 
         }
-        'Redhat': {
+        'Linux', 'Redhat': {
 
           $agent_service  = 'ossec-hids-agent'
 
@@ -54,6 +62,8 @@ class ossec::params {
           $server_package = 'ossec-hids'
 
           $service_has_status  = true
+
+          $ossec_service_provider = 'redhat'
 
           $default_local_files = {
             '/var/log/messages'         => 'syslog',
@@ -68,14 +78,14 @@ class ossec::params {
       }
     }
     'windows': {
-      $config_file = 'C:\\Program Files (x86)\\ossec-agent\\ossec.conf'
-      $config_owner = 'BUILTIN\Administrators'
-      $config_group = 'NT AUTHORITY\SYSTEM'
+      $config_file = regsubst(sprintf('c:/Program Files (x86)/ossec-agent/ossec.conf'), '\\\\', '/')
+      $config_owner = 'Administrator'
+      $config_group = 'Administrators'
 
-      $keys_file = 'C:\\Program Files (x86)\\ossec-agent\\client.keys'
+      $keys_file = regsubst(sprintf('c:/Program Files (x86)/ossec-agent/client.keys'), '\\\\', '/')
       $keys_mode = '0440'
-      $keys_owner = 'BUILTIN\Administrators'
-      $keys_group = 'NT AUTHORITY\SYSTEM'
+      $keys_owner = 'Administrator'
+      $keys_group = 'Administrators'
 
       $agent_service  = 'OssecSvc'
 
