@@ -26,6 +26,9 @@
 
   <!-- Included rules (static) -->
   <rules>
+    <% @ossec_extra_rules_folder_config.each do |rule_folder_config| -%>
+    <decoder_dir><%= rule_folder_config %></decoder_dir>
+<% end -%>
     <decoder>etc/decoder.xml</decoder>
     <decoder>etc/local_decoder.xml</decoder>
     <include>rules_config.xml</include>
@@ -85,7 +88,7 @@
     <include>ossec_rules.xml</include>
     <include>attack_rules.xml</include>
     <% @ossec_extra_rules_config.each do |rule_config| -%>
-    <%= rule_config %>
+     <include><%= rule_config %></include>
 <% end -%>
     <include>local_rules.xml</include>
   </rules>
@@ -114,6 +117,18 @@
   <rootcheck>
     <disabled>yes</disabled>
   </rootcheck>
+<% else -%>
+  <rootcheck>
+  <%- if @ossec_rootcheck_frequency then -%>
+    <frequency><%= @ossec_rootcheck_frequency %></frequency>
+  <%- end -%>
+  <%- if @ossec_rootcheck_checkports == false then -%>
+    <check_ports>no</check_ports>
+  <%- end -%>
+  <%- if @ossec_rootcheck_checkfiles == false then -%>
+    <check_files>no</check_files>
+  <%- end -%>
+  </rootcheck>
 <% end -%>
 <% if @ossec_active_response == false then -%>
   <active-response>
@@ -123,6 +138,7 @@
 
   <remote>
     <connection>secure</connection>
+    <port><%= @ossec_server_port %></port>
   </remote>
 
   <alerts>
